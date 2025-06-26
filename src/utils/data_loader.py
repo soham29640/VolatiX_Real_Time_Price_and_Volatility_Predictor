@@ -5,7 +5,9 @@ def fetch_data(ticker, interval="1m", period="1d"):
     df = yf.download(ticker, interval=interval, period=period, progress=False)
 
     if df.empty:
-        raise ValueError(f"No data fetched for ticker: {ticker}")
+        df = yf.download(ticker, interval="5m", period="5d", progress=False)
+        if df.empty:
+            raise ValueError(f"No data fetched for ticker: {ticker} (1m and 5m intervals failed)")
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = [col[0] if col[1] == '' else col[0] for col in df.columns]
@@ -13,12 +15,13 @@ def fetch_data(ticker, interval="1m", period="1d"):
     df = df.reset_index()
 
     if 'Datetime' in df.columns:
-        if df['Datetime'].dt.tz is None:
-            df['Date'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
-        else:
-            df['Date'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
-        df.drop(columns=['Datetime'], inplace=True)
+        dt_col = df['Datetime']
     else:
-        df['Date'] = df.index.tz_convert('Asia/Kolkata')
+        dt_col = df.index.to_series()
+
+    if dt_col.dt.tz is None:
+        df['Date'] = dt_col.dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Date'] = dt_col.dt.tz_convert('Asia/Kolkata')
 
     return df
