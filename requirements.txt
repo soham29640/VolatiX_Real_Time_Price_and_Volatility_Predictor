@@ -6,6 +6,6 @@ pandas==2.2.2
 numpy==1.26.4
 scikit-learn==1.4.2
 joblib==1.4.2
-arch==6.4.0
+arch==6.3.0
 streamlit-autorefresh==0.0.4
 
